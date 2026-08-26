@@ -25,7 +25,7 @@ pos_help_len:  .quad . - pos_help
 help_text:      .ascii "W: +vel max | S: -vel max | A: +zona risco | D: -zona risco"
 help_text_len:  .quad . - help_text
 
-pos_config:     .ascii "\x1b[3;2H"
+pos_config:     .ascii "\x1b[3;2H\x1b[K"
 pos_config_len: .quad . - pos_config
 
 prefix_free:    .ascii "Zona livre: "
@@ -130,37 +130,32 @@ ui_copy_n_loop:
 ui_copy_n_done:
     ret
 
-// w0 = 0..255, x1 = dest; retorna w0 = num digitos
+// w0 = 0..255, x1 = dest; retorna x1 avancado
 ui_format_byte:
     mov     w2, w0
-    mov     w3, #0
-
-    cmp     w2, #100
-    b.lt    ui_format_byte_no_hund
 
     mov     w4, #100
     udiv    w5, w2, w4
-    add     w6, w5, #'0'
-    strb    w6, [x1], #1
-    add     w3, w3, #1
     msub    w2, w5, w4, w2
+    mov     w4, #10
+    udiv    w6, w2, w4
+    msub    w7, w6, w4, w2
+
+    cbz     w5, ui_format_byte_no_hund
+    add     w5, w5, #'0'
+    strb    w5, [x1], #1
+    b       ui_format_byte_tens
 
 ui_format_byte_no_hund:
-    cmp     w2, #10
-    b.lt    ui_format_byte_ones
+    cbz     w6, ui_format_byte_ones
 
-    mov     w4, #10
-    udiv    w5, w2, w4
-    add     w6, w5, #'0'
+ui_format_byte_tens:
+    add     w6, w6, #'0'
     strb    w6, [x1], #1
-    add     w3, w3, #1
-    msub    w2, w5, w4, w2
 
 ui_format_byte_ones:
-    add     w6, w2, #'0'
-    strb    w6, [x1], #1
-    add     w3, w3, #1
-    mov     w0, w3
+    add     w7, w7, #'0'
+    strb    w7, [x1], #1
     ret
 
 // void ui_show_config(void) — mostra dist_free, dist_att e vel_max atuais

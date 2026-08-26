@@ -119,37 +119,32 @@ log_copy_n_loop:
 log_copy_n_done:
     ret
 
-// w0 = 0..255, x1 = dest; retorna w0 = num digitos
+// w0 = 0..255, x1 = dest; retorna x1 avancado
 log_format_byte:
     mov     w2, w0
-    mov     w3, #0
-
-    cmp     w2, #100
-    b.lt    log_format_byte_no_hund
 
     mov     w4, #100
     udiv    w5, w2, w4
-    add     w6, w5, #'0'
-    strb    w6, [x1], #1
-    add     w3, w3, #1
     msub    w2, w5, w4, w2
+    mov     w4, #10
+    udiv    w6, w2, w4
+    msub    w7, w6, w4, w2
+
+    cbz     w5, log_format_byte_no_hund
+    add     w5, w5, #'0'
+    strb    w5, [x1], #1
+    b       log_format_byte_tens
 
 log_format_byte_no_hund:
-    cmp     w2, #10
-    b.lt    log_format_byte_ones
+    cbz     w6, log_format_byte_ones
 
-    mov     w4, #10
-    udiv    w5, w2, w4
-    add     w6, w5, #'0'
+log_format_byte_tens:
+    add     w6, w6, #'0'
     strb    w6, [x1], #1
-    add     w3, w3, #1
-    msub    w2, w5, w4, w2
 
 log_format_byte_ones:
-    add     w6, w2, #'0'
-    strb    w6, [x1], #1
-    add     w3, w3, #1
-    mov     w0, w3
+    add     w7, w7, #'0'
+    strb    w7, [x1], #1
     ret
 
 .global log_control_action
