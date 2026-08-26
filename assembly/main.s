@@ -27,18 +27,18 @@ main_loop:
 
     cmp w19, #'q'
     beq quit
+    cmp w19, #'Q'
+    beq quit
 
+    mov w0, w19
+    bl ui_show_key
+
+    mov w0, w19
     bl control
 
     cmp w0, #0
     beq no_key
 
-    mov w20, w0
-/*
-*   bl uart_send_byte
-*/
-    mov w0, w20
-    bl ui_show_command
     bl ui_show_config
 
 no_key:

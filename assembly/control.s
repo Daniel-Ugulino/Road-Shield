@@ -10,6 +10,12 @@
 .extern cfg_vel_max
 
 control:
+    cmp     w0, #'A'
+    b.lt    control_no_upper
+    cmp     w0, #'Z'
+    b.gt    control_no_upper
+    add     w0, w0, #('a' - 'A')
+control_no_upper:
     cmp w0, #'w'
     beq increase_max_speed
     cmp w0, #'s'

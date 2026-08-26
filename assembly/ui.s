@@ -9,20 +9,20 @@ hide_cursor_len:  .quad . - hide_cursor
 show_cursor:      .ascii "\x1b[?25h"
 show_cursor_len:  .quad . - show_cursor
 
-label_input:      .ascii "\x1b[2;2HUltimo comando: "
+label_input:      .ascii "\x1b[2;2HUltima tecla: "
 label_input_len:  .quad . - label_input
 
-pos_cmd_echo:      .ascii "\x1b[2;19H"
-pos_cmd_echo_len:  .quad . - pos_cmd_echo
+pos_key_echo:      .ascii "\x1b[2;19H"
+pos_key_echo_len:  .quad . - pos_key_echo
 
-quit_hint:      .ascii "\x1b[4;2HWASD + Enter para mover, 'q' + Enter para sair"
+quit_hint:      .ascii "\x1b[4;2HWASD para ajustar, 'q' para sair"
 quit_hint_len:  .quad . - quit_hint
 
 // posiciona o texto de ajuda na linha 6
 pos_help:      .ascii "\x1b[6;2H"
 pos_help_len:  .quad . - pos_help
 
-help_text:      .ascii "Aumentar zona de perigo: A\nDiminuir zona de perigo: B\nAumentar velocidade: C\nDiminuir velocidade: D"
+help_text:      .ascii "W: +vel max | S: -vel max | A: +zona risco | D: -zona risco"
 help_text_len:  .quad . - help_text
 
 pos_config:     .ascii "\x1b[3;2H"
@@ -95,16 +95,16 @@ ui_init:
     ldp x29, x30, [sp], #16
     ret
 
-// void ui_show_command(uint8_t protocol_byte) -> mostra o byte cru (sem lookup table)
-.global ui_show_command
-ui_show_command:
+// void ui_show_key(uint8_t key) — mostra o caractere pressionado
+.global ui_show_key
+ui_show_key:
     stp x29, x30, [sp, #-16]!
 
     strb w0, [sp, #-16]!
 
     mov x0, #STDOUT
-    ldr x1, =pos_cmd_echo
-    ldr x2, =pos_cmd_echo_len
+    ldr x1, =pos_key_echo
+    ldr x2, =pos_key_echo_len
     ldr x2, [x2]
     mov x8, #SYS_WRITE
     svc #0

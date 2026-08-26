@@ -12,9 +12,6 @@ orig_termios: .skip 64
 raw_termios:  .skip 64
 key_buf:      .skip 8
 
-pending_key:  .skip 8
-has_pending:  .skip 8
-
 .section .text
 
 .global keyboard_init
@@ -53,10 +50,6 @@ kb_copy_loop:
     mov x8, #SYS_IOCTL
     svc #0
 
-    ldr x0, =has_pending
-    mov x1, #0
-    str x1, [x0]
-
     ldp x29, x30, [sp], #16
     ret
 
@@ -69,6 +62,7 @@ keyboard_restore:
     svc #0
     ret
 
+// retorna a tecla pressionada em w0, ou -1 se nada disponivel
 .global keyboard_read
 keyboard_read:
     stp x29, x30, [sp, #-16]!
@@ -83,34 +77,12 @@ keyboard_read:
     bne kb_nothing
 
     ldr x1, =key_buf
-    ldrb w2, [x1]
+    ldrb w0, [x1]
 
-    cmp w2, #0x0A
-    beq kb_check_enter
-    cmp w2, #0x0D
-    beq kb_check_enter
-
-    ldr x1, =pending_key
-    str w2, [x1]
-    ldr x1, =has_pending
-    mov w3, #1
-    str w3, [x1]
-
-    mov w0, #-1
-    b kb_read_done
-
-kb_check_enter:
-    ldr x1, =has_pending
-    ldr w3, [x1]
-    cmp w3, #1
-    bne kb_nothing
-
-    ldr x1, =pending_key
-    ldr w0, [x1]
-
-    ldr x1, =has_pending
-    mov w3, #0
-    str w3, [x1]
+    cmp w0, #0x0A
+    beq kb_nothing
+    cmp w0, #0x0D
+    beq kb_nothing
 
     b kb_read_done
 
