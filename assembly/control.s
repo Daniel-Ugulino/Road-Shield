@@ -1,13 +1,41 @@
-.section .text
-
 .equ STEP_DIST, 5
 .equ STEP_VEL,  5
-
-.global control
 
 .extern cfg_dist_free
 .extern cfg_dist_att
 .extern cfg_vel_max
+
+.section .rodata
+.align 3
+key_table:
+    .quad increase_risk_zone    // a
+    .quad control_ignore        // b
+    .quad control_ignore        // c
+    .quad reduce_risk_zone      // d
+    .quad control_ignore        // e
+    .quad control_ignore        // f
+    .quad control_ignore        // g
+    .quad control_ignore        // h
+    .quad control_ignore        // i
+    .quad control_ignore        // j
+    .quad control_ignore        // k
+    .quad control_ignore        // l
+    .quad control_ignore        // m
+    .quad control_ignore        // n
+    .quad control_ignore        // o
+    .quad control_ignore        // p
+    .quad control_ignore        // q
+    .quad control_ignore        // r
+    .quad reduce_max_speed      // s
+    .quad control_ignore        // t
+    .quad control_ignore        // u
+    .quad control_ignore        // v
+    .quad increase_max_speed    // w
+.equ KEY_TABLE_MAX, 22
+
+.section .text
+
+.global control
 
 control:
     stp     x29, x30, [sp, #-32]!
@@ -15,16 +43,15 @@ control:
     str     x19, [sp, #16]
 
     orr     w0, w0, #0x20
+    sub     w1, w0, #'a'
+    cmp     w1, #KEY_TABLE_MAX
+    b.hi    control_ignore
 
-    cmp     w0, #'w'
-    b.eq    increase_max_speed
-    cmp     w0, #'s'
-    b.eq    reduce_max_speed
-    cmp     w0, #'a'
-    b.eq    increase_risk_zone
-    cmp     w0, #'d'
-    b.eq    reduce_risk_zone
+    ldr     x2, =key_table
+    ldr     x3, [x2, w1, uxtw #3]
+    br      x3
 
+control_ignore:
     mov     w0, #0
     b       control_ret
 

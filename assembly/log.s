@@ -147,6 +147,17 @@ log_format_byte_ones:
     strb    w7, [x1], #1
     ret
 
+.section .rodata
+.align 3
+log_action_table:
+    .quad log_action_vel_inc    // 1
+    .quad log_action_vel_dec    // 2
+    .quad log_action_risk_inc   // 3
+    .quad log_action_risk_dec   // 4
+.equ LOG_ACTION_MAX, 3
+
+.section .text
+
 .global log_control_action
 log_control_action:
     stp     x29, x30, [sp, #-32]!
@@ -156,15 +167,13 @@ log_control_action:
     adr     x20, log_line_buf
     mov     x1, x20
 
-    cmp     w19, #1
-    b.eq    log_action_vel_inc
-    cmp     w19, #2
-    b.eq    log_action_vel_dec
-    cmp     w19, #3
-    b.eq    log_action_risk_inc
-    cmp     w19, #4
-    b.eq    log_action_risk_dec
-    b       log_action_done
+    sub     w2, w19, #1
+    cmp     w2, #LOG_ACTION_MAX
+    b.hi    log_action_done
+
+    ldr     x3, =log_action_table
+    ldr     x3, [x3, w2, uxtw #3]
+    br      x3
 
 log_action_vel_inc:
     ldr     x2, =msg_vel_inc
